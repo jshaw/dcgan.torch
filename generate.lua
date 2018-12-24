@@ -13,7 +13,9 @@ opt = {
     gpu = 1,               -- gpu mode. 0 = CPU, 1 = GPU
     display = 1,           -- Display image: 0 = false, 1 = true
     nz = 100,
-    multiple_walks = false              
+    multiple_walks = 0,              
+    walk_steps = 32,
+    count = 1,
 }
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
 print(opt)
@@ -45,18 +47,49 @@ end
 
 noiseL = torch.FloatTensor(opt.nz):uniform(-1, 1)
 noiseR = torch.FloatTensor(opt.nz):uniform(-1, 1)
+
+-- print('noiseL: ', noiseL)
+-- print('noiseR: ', noiseR)
+
+
+-- noiseL = torch.FloatTensor(opt.nz):uniform(-1, 1)
+-- noiseR = torch.FloatTensor(opt.nz):uniform(-1, 1)
+
+-- print('noiseL: ', noiseL)
+-- print('noiseR: ', noiseR)
+
+
 if opt.noisemode == 'line' then
    -- do a linear interpolation in Z space between point A and point B
    -- each sample in the mini-batch is a point on the line
-    line  = torch.linspace(0, 1, opt.batchSize)
+   -- line  = torch.linspace(0, 1, opt.batchSize)
+   line = torch.linspace(0, 1, opt.walk_steps)
+
     for i = 1, opt.batchSize do
-        if opt.multiple_walks == true then
-            if i % 60 == 0 then
-                noiseL = noiseR
-                noiseR = torch.FloatTensor(opt.nz):uniform(-1, 1)
-            end
+        if opt.multiple_walks == 1 then
+  	   print('get in here first?'); 
+           if i % opt.walk_steps == 0 then
+		print('***************!!!!!')
+                -- noiseL = noiseR
+		-- print('1')
+		-- noiseL = torch.FloatTensor(opt.nz):uniform(-1, 1)
+                -- noiseR = torch.FloatTensor(opt.nz):uniform(-1, 1)
+		-- print('2')
+		-- line  = torch.linspace(0, 1, opt.walk_steps)
+           	-- print('3')
+		noiseR = noiseL
+		noiseL = torch.FloatTensor(opt.nz):uniform(-1,1) 
+		opt.count = 1
+		-- noise = torch.Tensor(opt.walk_steps, opt.nz, opt.imsize, opt.imsize)
+	   end
         end
-        noise:select(1, i):copy(noiseL * line[i] + noiseR * (1 - line[i]))
+
+	print('opt.count: ', opt.count)
+	cnt = opt.count
+        -- noise:select(1, i):copy(noiseL * line[i] + noiseR * (1 - line[i]))
+    	noise:select(1, i):copy(noiseL * line[cnt] + noiseR * (1 - line[cnt]))
+	print('end: ', i)
+	opt.count = opt.count + 1
     end
 elseif opt.noisemode == 'linefull1d' then
    -- do a linear interpolation in Z space between point A and point B
