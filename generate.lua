@@ -12,7 +12,8 @@ opt = {
     name = 'generation1',  -- name of the file saved
     gpu = 1,               -- gpu mode. 0 = CPU, 1 = GPU
     display = 1,           -- Display image: 0 = false, 1 = true
-    nz = 100,              
+    nz = 100,
+    multiple_walks = false              
 }
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
 print(opt)
@@ -49,6 +50,12 @@ if opt.noisemode == 'line' then
    -- each sample in the mini-batch is a point on the line
     line  = torch.linspace(0, 1, opt.batchSize)
     for i = 1, opt.batchSize do
+        if opt.multiple_walks == true then
+            if i % 60 = 0 then
+                noiseL = noiseR
+                noiseR = torch.FloatTensor(opt.nz):uniform(-1, 1)
+            end
+        end
         noise:select(1, i):copy(noiseL * line[i] + noiseR * (1 - line[i]))
     end
 elseif opt.noisemode == 'linefull1d' then
