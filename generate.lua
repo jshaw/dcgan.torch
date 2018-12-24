@@ -51,7 +51,7 @@ if opt.noisemode == 'line' then
     line  = torch.linspace(0, 1, opt.batchSize)
     for i = 1, opt.batchSize do
         if opt.multiple_walks == true then
-            if i % 60 = 0 then
+            if i % 60 == 0 then
                 noiseL = noiseR
                 noiseR = torch.FloatTensor(opt.nz):uniform(-1, 1)
             end
